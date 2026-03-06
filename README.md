@@ -1,182 +1,185 @@
-# 内贸物流智能平台
+# zd01-web
 
-> 一个覆盖仓储、运输、报价、考核、看板和飞书协同的内贸物流业务平台。
+WMS内贸物流平台前端项目，基于 Vue 3 + TypeScript + Element Plus 构建。
 
-## 项目简介
+## 功能模块
 
-内贸物流智能平台（`zd01`）面向阳逻仓、观澜仓、东莞仓三大仓库的日常运营，提供统一入口来完成库存查询、出入库管理、TMS 订单跟踪、承运商 KPI 考核、延迟审核、报价查询、日报推送和系统配置。
+### 菜单结构
 
-这个项目的核心目标不是“再做一个系统”，而是把原本分散在多个 WMS、TMS、Excel、飞书群里的工作收敛到一个入口里，减少切换、减少人工整理、减少重复沟通。
+系统按仓库划分为三个一级菜单，每个仓库下有三个二级功能模块：
 
-## 在线地址
-
-| 环境 | 地址 | 说明 |
-|------|------|------|
-| 生产内网 | `http://10.20.120.22/` | 日常使用入口 |
-| 生产公网 | `http://221.233.151.202/` | 需 IT 放行 80 端口 |
-| 本地开发 | `http://127.0.0.1/` | 本地代理入口 |
-| API 文档 | `http://127.0.0.1:8000/docs` | FastAPI OpenAPI 文档 |
-
-## 核心能力
-
-### 1. 数据看板
-
-- 聚合三仓核心数据，支持单仓/多仓筛选
-- 展示库存、容量、出入库趋势、地图分布、区域订单等信息
-- 作为日报截图和飞书推送的数据来源
-
-### 2. 三仓业务数据
-
-- 阳逻仓、观澜仓、东莞仓统一接入
-- 提供库存、出库、入库三类数据查询
-- 支持实时抓取 WMS，也支持查询本地沉淀数据
-- 支持 Excel 导出，管理员支持导入、删除、批量维护
-
-### 3. TMS 订单管理
-
-- 按订单号、ERP 单号、承运商、状态等维度查询
-- 定时同步 TMS 数据，减少人工登录 TMS 的频率
-- 支持历史订单追溯和明细查看
-
-### 4. 承运商 KPI
-
-- 自动计算提货、送达、回单、货物安全等维度得分
-- 输出月度 KPI 结果、等级和排名
-- 支持导出统计结果，减少人工算分
-
-### 5. 延迟审核
-
-- 分提货延迟、送达延迟、回单延迟三个场景
-- 可记录延迟原因并进行审核
-- 审核通过的客观延迟可不计入 KPI 扣分
-
-### 6. 报价与仓库查询
-
-- 提供线路报价查询
-- 提供仓库信息查询
-- 对接独立 Flask 应用，通过统一入口集成到主系统
-
-### 7. 自动化日报与飞书协同
-
-- 定时截图数据看板并生成日报
-- 推送到飞书群或指定接收人
-- 支持飞书机器人进行帮助、报价、仓库等信息查询
-
-### 8. 系统管理
-
-- 用户和角色管理
-- 报表接收人管理
-- WMS/TMS Cookie 管理
-- 仓库参数配置
-
-## 适用角色
-
-| 角色 | 典型使用场景 |
-|------|--------------|
-| 管理员 | 用户管理、系统配置、全量业务操作、日志和测试接口 |
-| 查看人员 | 数据看板、报价系统、仓库查询 |
-| 业务角色 | 三仓业务数据查询、Excel 导出、运营数据查看 |
-
-## 解决的问题
-
-| 过去的问题 | 现在的方案 |
-|------------|------------|
-| 需要反复登录多个系统查数据 | 用统一平台聚合 WMS/TMS/报价信息 |
-| 日报依赖人工截图和发送 | 用自动截图和飞书推送替代 |
-| KPI 统计依赖手工 Excel | 用规则化计算替代人工算分 |
-| 延迟问题无法留痕 | 用审核流程保留原因和结论 |
-| 报价和仓库信息入口分散 | 用统一导航和系统入口收口 |
-
-## 技术架构
-
-| 层级 | 技术方案 | 说明 |
-|------|----------|------|
-| 前端 | Vue 3 + TypeScript + Element Plus | 登录、菜单、看板、业务页面 |
-| 主后端 | FastAPI + SQLAlchemy + SQLite | 用户、权限、WMS、TMS、KPI、日报 |
-| 辅助业务 | Flask | 报价、仓库查询、专车询价、装卸管理 |
-| 调度 | APScheduler | 数据同步、日报、自动任务 |
-| 截图 | Selenium + Chromium | 看板截图和 GIF 生成 |
-| 通知 | 飞书 Open API | 日报和机器人交互 |
-| 代理 | Nginx / Caddy | 统一入口和路由转发 |
-
-## 系统结构
-
-```text
-zd01/
-├── server/                 # FastAPI 主后端
-│   ├── app/
-│   │   ├── api/            # 业务接口
-│   │   ├── core/           # 配置、鉴权、安全
-│   │   ├── crud/           # 数据访问
-│   │   ├── models/         # 数据模型
-│   │   ├── schemas/        # 请求/响应模型
-│   │   └── services/       # 调度、飞书、截图、业务服务
-│   └── data/               # SQLite 数据
-├── web/                    # Vue 前端
-│   ├── src/views/          # 页面
-│   ├── src/layouts/        # 布局
-│   ├── src/router/         # 路由
-│   └── src/stores/         # 状态管理
-├── deploy/                 # 部署脚本与配置
-├── PROJECT.md              # 项目总览
-└── FILES_MANIFEST.md       # 文件清单
+```
+├── 概览
+├── 阳逻仓
+│   ├── 库存查询
+│   ├── 出库数据
+│   └── 入库数据
+├── 观澜仓
+│   ├── 库存查询
+│   ├── 出库数据
+│   └── 入库数据
+├── 东莞仓
+│   ├── 库存查询
+│   ├── 出库数据
+│   └── 入库数据
+├── 账号管理
+└── 系统设置
 ```
 
-## 快速开始
+### 库存查询
 
-### 本地开发
+路径：`/{仓库}/inv`（如 `/yangluo/inv`）
 
-```bash
-# 1. 启动后端
-cd server
-uvicorn app.main:app --reload --port 8000
+库存数据查询与展示页面，支持实时数据和历史快照两种模式：
 
-# 2. 启动前端
-cd ../web
+**数据来源**
+- **实时数据**：从 WMS 系统实时查询当前库存，查询结果自动保存到本地数据库
+- **历史快照**：查看之前保存的历史库存数据，支持按快照日期筛选
+
+**查询区域（固定在顶部）**
+- 包含标题（显示对应仓库名称）和记录总数
+- 数据来源切换（实时数据/历史快照）
+- 快照日期选择器（仅在历史快照模式下显示）
+- 支持按 SKU、库位等条件筛选
+- 查询、重置、同步到本地按钮
+
+**库存明细区域（独立滚动）**
+- 表格支持横向滚动（左右滑动查看更多字段）
+- 表格支持纵向滚动（上下滚动查看更多数据）
+- 固定列：仓库名称、货主名称、物料信息固定在左侧，操作列固定在右侧
+- 分页功能：支持切换每页显示条数
+- 明细查看：双击行或点击"明细"按钮查看完整库存信息
+
+**本地数据存储**
+- 每次查询实时数据时自动保存到本地 SQLite 数据库
+- 数据按快照日期分组存储，便于后续日库存分析
+- 自动去重：相同数据（全部字段一致）不会重复插入
+
+### 出库数据
+
+路径：`/{仓库}/outbound`（如 `/yangluo/outbound`）
+
+出库数据查询页面，支持实时 WMS 数据和本地数据两种模式：
+
+**数据来源**
+- **实时 WMS**：从 WMS 系统实时查询出库数据，查询结果自动保存到本地
+- **本地数据**：查看已同步到本地的历史出库数据
+
+**查询条件**
+- 数据来源切换（实时WMS/本地数据）
+- **发货日期范围**：选择开始日期和结束日期筛选
+- 出库单号、物料编码筛选
+- 同步到本地按钮（需先选择日期范围）
+
+**字段信息**
+- 仓库名称、货主、仓库代码
+- 出库单号、出库单类型、出库单行号
+- 发货时间
+- 物料编码、物料名称
+- 数量EA、批次、体积
+- SAP库存地
+
+**本地数据存储**
+- 查询时自动保存到本地 SQLite 数据库
+- 可手动点击"同步到本地"批量同步指定日期范围的数据
+- 自动去重：相同数据不会重复插入
+
+### 入库数据
+
+路径：`/{仓库}/inbound`（如 `/yangluo/inbound`）
+
+入库数据查询页面，支持实时 WMS 数据和本地数据两种模式：
+
+**数据来源**
+- **实时 WMS**：从 WMS 系统实时查询入库数据，查询结果自动保存到本地
+- **本地数据**：查看已同步到本地的历史入库数据
+
+**查询条件**
+- 数据来源切换（实时WMS/本地数据）
+- **收货日期范围**：选择开始日期和结束日期筛选
+- 入库单号、物料编码筛选
+- 同步到本地按钮（需先选择日期范围）
+
+**字段信息**
+- 仓库名称、货主名称、仓库代码、货主代码
+- 入库单号、入库单类型、入库单行号
+- 收货日期
+- 物料编码、物料名称
+- 数量EA、批次、体积
+- SAP库存地
+
+**本地数据存储**
+- 查询时自动保存到本地 SQLite 数据库
+- 可手动点击"同步到本地"批量同步指定日期范围的数据
+- 自动去重：相同数据不会重复插入
+
+### 系统设置
+
+路径：`/settings`
+
+WMS Cookie 管理页面，支持三个仓库独立配置：
+- **阳逻仓** - 独立的 Cookie 配置
+- **观澜仓** - 独立的 Cookie 配置（对应 WMS 中的坪山RDC）
+- **东莞仓** - 独立的 Cookie 配置
+
+功能：
+- **自动登录**：输入 WMS 账号密码，系统自动获取 Cookie（推荐）
+- **手动配置**：从浏览器复制 Cookie 粘贴保存
+- 查看各仓库 Cookie 状态（正常/异常/未配置）
+- 查看 Token 过期时间
+- 测试连接
+- 批量刷新 Token
+
+## 技术栈
+
+- Vue 3
+- TypeScript
+- Element Plus
+- Vue Router
+- Pinia
+- Vite
+
+## Recommended IDE Setup
+
+[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+
+## Recommended Browser Setup
+
+- Chromium-based browsers (Chrome, Edge, Brave, etc.):
+  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
+  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
+- Firefox:
+  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
+  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+
+## Type Support for `.vue` Imports in TS
+
+TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+
+## Customize configuration
+
+See [Vite Configuration Reference](https://vite.dev/config/).
+
+## Project Setup
+
+```sh
 npm install
+```
+
+### Compile and Hot-Reload for Development
+
+```sh
 npm run dev
 ```
 
-如果本地使用反向代理，请将入口统一到 `http://127.0.0.1/`。
+### Type-Check, Compile and Minify for Production
 
-### 前端构建
-
-```bash
-cd web
+```sh
 npm run build
 ```
 
-### 生产发布
+### Lint with [ESLint](https://eslint.org/)
 
-```bash
-deploy\deploy.bat
+```sh
+npm run lint
 ```
-
-## 权限说明
-
-当前系统采用角色与管理员双层权限控制。
-
-- 管理员可访问所有模块，包括系统管理和物流管理
-- 查看人员只能访问数据看板和报价系统
-- 其他业务角色可访问三仓业务数据，并可导出 Excel
-
-## 文档索引
-
-- [PROJECT.md](./PROJECT.md)
-  适合查看架构、服务、端口、部署方式和运维信息
-- [FILES_MANIFEST.md](./FILES_MANIFEST.md)
-  适合快速定位代码文件和目录归属
-- [web/README.md](./web/README.md)
-  适合前端开发和本地构建
-
-## 后续规划
-
-- 更细粒度的角色权限控制
-- 移动端适配和轻量化操作界面
-- 更完整的异常预警机制
-- 更标准化的数据报表输出
-- 与更多内外部系统的 API 集成
-
-## 说明
-
-这是一个偏业务落地型项目，重点不在“展示技术栈”，而在把物流团队每天真正要做的事情收口到一个稳定、可维护、能自动化的系统里。
